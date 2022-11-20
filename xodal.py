@@ -128,7 +128,8 @@ class MicroXO(xodal):
 			func = funcOrNamespace
 			# get namespace from running filename
 			print("##########22222222", type(self))
-			namespace = ".".join(str(type(self)).split(".")[1:]).split("'")[0]
+			# namespace = ".".join(str(type(self)).split(".")[1:]).split("'")[0]
+			namespace = str(type(self)).split(".")[:-1].split("'")[0]
 			print("##########22222222", namespace)
 			_rootName = namespace
 			_id = namespace

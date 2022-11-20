@@ -21,11 +21,11 @@ class xodal(Expando):
 	# _id = xo
 
 	def __init__(self, func=None,_rootName=None, _xoT_=None, *args, **kwargs):
-		print("########0000000Xodal", func, args, kwargs)
+		# print("########0000000Xodal", func, args, kwargs)
 		if _rootName is not None:
 			self._rootName = _rootName
 			kwargs["_id"] = _rootName
-			print("5555555555555",_rootName,  kwargs["_id"],"::::::", kwargs)
+			# print("5555555555555",_rootName,  kwargs["_id"],"::::::", kwargs)
 
 		if "_id" in kwargs:
 			_id = kwargs.pop("_id")
@@ -111,7 +111,7 @@ class MicroXO(xodal):
 	_services = {}
 
 	def __init__(self, funcOrNamespace=None, reqPort=None, _xoT_=None, *args, **kwargs):
-		print("########00000M", funcOrNamespace, args, kwargs)
+		# print("########00000M", funcOrNamespace, args, kwargs)
 		runServer = False
 		func = None
 		# namespace = self._rootName
@@ -119,7 +119,7 @@ class MicroXO(xodal):
 		_rootName = None
 		_id = None
 		if isinstance(funcOrNamespace,str):
-			print("1111111")
+			# print("1111111")
 			namespace = funcOrNamespace
 			kwargs["_id"]=namespace
 			_rootName = namespace
@@ -127,10 +127,10 @@ class MicroXO(xodal):
 		elif "_id" not in kwargs:
 			func = funcOrNamespace
 			# get namespace from running filename
-			print("##########22222222", type(self))
+			# print("##########22222222", type(self))
 			# namespace = ".".join(str(type(self)).split(".")[1:]).split("'")[0]
 			namespace = str(type(self)).split(".")[-1].split("'")[0]
-			print("##########22222222", namespace)
+			# print("##########22222222", namespace)
 			_rootName = namespace
 			_id = namespace
 			if "_id" in kwargs:
@@ -148,11 +148,11 @@ class MicroXO(xodal):
 		if "_services" in kwargs and len(self._services) == 0:
 			self._services = kwargs["_services"]
 			for service in kwargs["_services"]:
-				print(" ::: SERVICE1 :::", service)
+				# print(" ::: SERVICE1 :::", service)
 				self._services[service] = {"client": None,
                                     "port": kwargs["_services"][service]}
-			for service in self._services:
-				print(" ::: SERVICE0 :::", service)
+			# for service in self._services:
+			# 	print(" ::: SERVICE0 :::", service)
 
 		if type(self)._services is not None and len(self._services) == 0:
 			self._services = type(self)._services
@@ -165,17 +165,26 @@ class MicroXO(xodal):
 					      namespace, self._services[namespace])
 					reqPort = self._services[namespace]["port"]
 					self._reqPort = reqPort
-					print("999999999999999999999", reqPort)
+					# print("999999999999999999999", reqPort)
 				else:
-					print("XXXXXXXXXXXXXXXXXXXXXXXXXX11111",
-					      runServer, namespace, kwargs["_services"])
-			for service in self._services:
-				print(" ::: SERVICE0 :::", service)
+					pass
+					# print("XXXXXXXXXXXXXXXXXXXXXXXXXX11111",
+					#       runServer, namespace, kwargs["_services"])
+			# for service in self._services:
+			# 	print(" ::: SERVICE0 :::", service)
 		else:
-			print("XXXXXXXXXXXXXXXXXXXXXXXXXX2222", func, namespace, kwargs)
+			# print("XXXXXXXXXXXXXXXXXXXXXXXXXX2222", func, namespace, kwargs)
+			pass
 
 		if runServer:
 			pubPort = MicroXO._pubPort
+			if reqPort is None:
+				pass
+				print(" ::: WTF0 ::: ",namespace,self._reqPort,self._services)
+			if reqPort is None:
+				# Get port
+				reqPort = self._reqPort
+				# print("NICEEEEEEEEEEEEE")
 			if reqPort is None:
 				# Get port
 				reqPort = MicroXO._reqPort
@@ -187,9 +196,10 @@ class MicroXO(xodal):
 			killport.kill_ports(ports=[reqPort, pubPort])
 			time.sleep(.2)
 			# self._pubserver = Server(xoServer._pubPort)
-			self._reqserver = Server(reqPort)
-			self._reqport = reqPort
-			self._pubport = pubPort
+			self._reqPort = reqPort
+			# print("@@@@@@@@@@@@@@@@@@@@@@@@@@",reqPort,self._reqPort)
+			self._reqServer = Server(reqPort)
+			self._pubPort = pubPort
 
 			def pushToSubs(topic: str):
 				listen_for_push = self._pubserver.pull()
@@ -204,39 +214,43 @@ class MicroXO(xodal):
 						pass
 
 			def listen(data, *args, **kwargs):
-				reply, listen_for_request = self._reqserver.reply()
+				reply, listen_for_request = self._reqServer.reply()
 				c = 0
 				for payload in listen_for_request:
 					c += 1
 					try:
+						print()
 						print(c, "::: INCOMING:", payload, "type:",type(payload))
-						print("INDEX:",MicroXO.index)
-						print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
+						# print()
+						# print("INDEX:",MicroXO.index)
+						# print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
 						# f"ECHO! {msg}".encode()
 						# reply(bytes("ECHO! "+str(msg)))
 						payload = json.loads(payload)
 						# payload = pk.loads(payload)
 						target = payload["target"] if "target" in payload else None
 						if target in MicroXO.index:
-							print("!!!!!!!!!!!!!!!!!!!!!!!!", target, MicroXO.index[target])
-							print("##########")
+							print(" ::: TARGET FOUND ! :::", target, MicroXO.index[target])
+							# print("##########")
 							res = None
 							try:
 								res = self.index[target](*payload["args"],**payload["kwargs"])
-								print("@@@@@@@@@@@")
+								# print("@@@@@@@@@@@")
 								res = json.dumps(res)
-								print("@@@@@@@@@@@")
+								# print("@@@@@@@@@@@")
 								res = res.encode()
 							except:
 								traceback.print_exc()
+
+							print(" ::: OUTGOING REPLY :::\n",res,"\n\n\n")
 							if res is None:
 								reply(bytes(True))
 							else:
 								# reply(bytes(json.dumps(res)))
-								print("##########")
+								# print("##########")
 								# reply(json.dumps(res).encode())
 								reply(res)
-								print("##########")
+								# print("##########")
 						else:
 							reply(f"ECHO! {target} was not found in index".encode())
 		
@@ -257,7 +271,8 @@ class MicroXO(xodal):
 
 			requests = Thread(target=listen, args=[self._id, ])
 			requests.start()
-			print(" ::: Requests Server Started {"+f" {namespace}"+"}"+f" port {self._reqPort}")
+			# print(" ::: Requests Server Started {"+f" {namespace}"+" }"+f" port {self._reqPort}")
+			print(" ::: Requests Server Started {"+f" {namespace}"+" }"+f" port {reqPort}")
 			# time.sleep(1)
 			# pub = Thread(target=pushToSubs, args=[self._id, ])
 			# pub.start()
@@ -277,12 +292,12 @@ class MicroXO(xodal):
 	def getPorts():
 		return {""}
 		
-	_services = {"microxo": 1993,} # OVERLOAD THIS
+	# _services = {"microxo": 1993,} # OVERLOAD THIS
 	# _current_namespace = MicroXO.getNamespace()
 	# _servers = getPorts()
 
 	def DefaultFunc(self, payload):
-		print("PPPPPPP", payload)
+		# print("PPPPPPP", payload)
 		id = payload["kwargs"]["id"] if "kwargs" in payload and "id" in payload["kwargs"] else None
 		namespace, target = None, None
 		if id is not None:
@@ -302,34 +317,39 @@ class MicroXO(xodal):
 				# 	SEND REQUEST TO SERVER
 				# xoClient().request(namespace+"/"+target, * payload["args"], ** payload["kwargs"])
 				if namespace in self._services:
-					print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-					print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-					print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-					print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",self._services[namespace])
+					# print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+					# print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+					# print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
 					if self._services[namespace]["client"] is None:
+						print(f" ::: Found Port for namespace {namespace} ",self._services[namespace])
 						print(f" ::: OPENING CLIENT TO {namespace} {self._services[namespace]['port']}")
 						self._services[namespace]["client"] = xoClient(_reqPort=self._services[namespace]["port"])
 						
-					self._services[namespace]["client"].request(namespace+"/"+target, *payload["args"], ** payload["kwargs"])
+					resp = self._services[namespace]["client"].request(namespace+"/"+target, *payload["args"], ** payload["kwargs"])
+					print(" ::: GOT REPLY FROM {namespace} / {target} :::")
+					# print(resp)
+					return resp
 
 
 				else:
-					print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-					print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-					print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-					print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+					print(f" ::: COULD NOT FIND Port for namespace {namespace} !  Available Services:\n",self._services,"\n\n")
+					# print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",self._services)
+					# print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+					# print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+					# print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",namespace)
 
-					xoClient().request(namespace+"/"+target, * payload["args"], ** payload["kwargs"])
+					# xoClient().request(namespace+"/"+target, * payload["args"], ** payload["kwargs"])
 
 
 
 				
-		print(":::::::::::::::::::::::::::", self._id, payload)
-		if target is not None:
-			print(f" ::: Sending Request to Server {namespace} ::: {target}")
-			print(" $$$$$$$ TARGET $$$$$$$ ", target)
-			# return self._getRoot().CallFunc(payload)
-		return "NICE!!!!!!"
+		# print(":::::::::::::::::::::::::::", self._id, payload)
+		# if target is not None:
+		# 	print(f" ::: Sending Request to Server {namespace} ::: {target}")
+		# 	print(" $$$$$$$ TARGET $$$$$$$ ", target)
+		# 	# return self._getRoot().CallFunc(payload)
+		# return "NICE!!!!!!"
+		return False
 
 
 
@@ -366,12 +386,12 @@ def location(*args, **kwargs):
 	return fin
 
 # bar()
-m = MicroXO()
+# m = MicroXO()
 
-print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-print(m.index)
-print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+# print(m.index)
+# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 # print(type(d.index["xo/bar"]))
 # d.index["xo/bar"]("NICEEEEEEEE!!!!!!!!!!!!!!")
 
@@ -384,8 +404,8 @@ print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 # 	return MicRobee.gps.location()
 
 
-m.Sara(" And very loved by me :-*")
-print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+# m.Sara(" And very loved by me :-*")
+# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
 		# print(args, kwargs)
 		# self._func = lambda : 1

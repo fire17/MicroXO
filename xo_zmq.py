@@ -116,25 +116,33 @@ class xoClient(Expando):
 		pass
 
 	def __init__(self, _pubPort=None, _reqPort=None, _val=None, _id=None, _parent=None, _behaviors=..., _xoT_=None, *vars, **entries):
-		super().__init__(_val, _id, _parent, _behaviors, _xoT_, *vars, **entries)
+		super().__init__(_val, _id = _id, _parent = _parent, _behaviors=_behaviors, _xoT_=_xoT_, *vars, **entries)
 		# self._rootName = xoClient._rootName
 		self._namespace = None
 		if _parent is None:
 			pass
 			# connect to defaultserver, or launch it
-			self._pubPort = _pubPort if _pubPort is not None else xoClient._pubPort
+			# self._pubPort = _pubPort if _pubPort is not None else xoClient._pubPort
 			self._reqPort = _reqPort if _reqPort is not None else xoClient._pubPort * 10 + 1
 			# reqPort = reqPort if reqPort is not None else xoZMQ._reqPort
 			self._pubclient = Client()
 			self._reqclient = Client()
+			if _reqPort is None:
+				_reqPort = self._reqPort
 			# only root does clients ?
 			try:
-				xoClient.connect(self._pubclient, self._pubPort)
+				# xoClient.connect(self._pubclient, self._pubPort)
+				xoClient.connect(self._reqclient,_reqPort)
+				# print(f"{_reqPort} TTTTTTTTTTTTTTTTTT111 connected to {self._reqclient} {_reqPort}")
+
 			except:
 				traceback.print_exc()
 			try:
-				xoClient.connect(self._reqclient, self._reqPort)
+				# print("TTTTTTTTTTTTTTTTTT0")
+				xoClient.connect(self._reqclient, _reqPort)
+				# print("TTTTTTTTTTTTTTTTTT01")
 				self._clientRequest, self._listenReply = self._reqclient.request()
+				# print(f"TTTTTTTTTTTTTTTTTT111 connected to  {_reqPort}")
 				# request, listen_for_reply = client.request()
 				# request, listen_for_reply = client
 
@@ -151,10 +159,10 @@ class xoClient(Expando):
 		# elif _parent._isRoot:
 		elif self._isNameSpace():
 			self._namespace = self.subNamespace()
-			self._pubclient = self._getRoot()._pubclient
+			self._reqclient = self._getRoot()._reqclient
 		else:
 			self._namespace = self._getNameSpace()
-			self._pubclient = self._getRoot()._pubclient
+			self._reqclient = self._getRoot()._reqclient
 
 		def subscribeToZMQ(topic: str):
 			topic = topic[0] if isinstance(topic, list) else topic
@@ -167,10 +175,11 @@ class xoClient(Expando):
 				print(topic, ' - ', msg)
 				self._setValue(msg)
 
-		th = Thread(target=subscribeToZMQ, args=[self._id, ])
-		th.start()
+		# th = Thread(target=subscribeToZMQ, args=[self._id, ])
+		# th.start()
 
 	def request(self, target="microxo/foo", *args, **kwargs):
+		# print("RRRRRRRRRRRRR",target,args,kwargs)
 		# request, listen_for_reply = self.clientRequest, self.listenReply
 		try:
 			# self._clientRequest(f"sara is amazing X {c}".encode())
@@ -178,11 +187,16 @@ class xoClient(Expando):
 			payload = {"target": target, "args": args, "kwargs": kwargs}
 			self._clientRequest(json.dumps(payload).encode())
 			response = next(self._listenReply)
-			print(response)
+			# print(response)
+			return response
 		except:
 			traceback.print_exc()
+			print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",self._reqPort)
 			xoClient.connect(self._reqclient, self._reqPort)
 			self._clientRequest, self._listenReply = self._reqclient.request()
+			if "retry" not in kwargs or kwargs["retry"]:
+				kwargs["retry"] = False
+				self.request(target=target,retry=False,*args,**kwargs)
 			# request, listen_for_reply = client.request()
 		finally:
 			pass

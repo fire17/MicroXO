@@ -145,29 +145,42 @@ class MicroXO(xodal):
 		if _rootName is not None:
 			self._rootName = _rootName
 
-		if "_services" in kwargs:
+		if "_services" in kwargs and len(self._services) == 0:
 			self._services = kwargs["_services"]
+			for service in kwargs["_services"]:
+				print(" ::: SERVICE1 :::", service)
+				self._services[service] = {"client": None,
+                                    "port": kwargs["_services"][service]}
+			for service in self._services:
+				print(" ::: SERVICE0 :::", service)
+
+		if type(self)._services is not None and len(self._services) == 0:
+			self._services = type(self)._services
+
+		if self._services is not None:
+			type(self)._services = self._services
 			if namespace is not None and runServer:
 				if namespace in self._services:
-					print(" !!! FOUND SERVER NAMESPACE ", namespace, self._services[namespace])
-					print("999999999999999999999")
-					reqPort = self._services[namespace]
+					print(" !!! FOUND SERVER NAMESPACE ",
+					      namespace, self._services[namespace])
+					reqPort = self._services[namespace]["port"]
+					self._reqPort = reqPort
+					print("999999999999999999999", reqPort)
 				else:
-					print("XXXXXXXXXXXXXXXXXXXXXXXXXX11111", kwargs["_services"])
+					print("XXXXXXXXXXXXXXXXXXXXXXXXXX11111",
+					      runServer, namespace, kwargs["_services"])
 			for service in self._services:
-				print(" ::: SERVICE :::",service)
+				print(" ::: SERVICE0 :::", service)
 		else:
-			print("XXXXXXXXXXXXXXXXXXXXXXXXXX2222", kwargs["_services"])
-
-
+			print("XXXXXXXXXXXXXXXXXXXXXXXXXX2222", func, namespace, kwargs)
 
 		if runServer:
 			pubPort = MicroXO._pubPort
 			if reqPort is None:
-				#Get port
+				# Get port
 				reqPort = MicroXO._reqPort
 			else:
-				pubPort = int(str(reqPort)+"1")				
+				pubPort = int(str(reqPort)+"1")
 			
 
 			# self._reqServer = xoServer(port = int(str(port)+"1")) 
@@ -287,7 +300,27 @@ class MicroXO(xodal):
 				# 	# REQUEST FROM SERVER
 				# 	print(" $$$$$$$ REQUESTING FROM SERVER $$$$$$$ ", namespace)
 				# 	SEND REQUEST TO SERVER
-				xoClient().request(namespace+"/"+target, * payload["args"], ** payload["kwargs"])
+				# xoClient().request(namespace+"/"+target, * payload["args"], ** payload["kwargs"])
+				if namespace in self._services:
+					print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+					print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+					print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+					print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",self._services[namespace])
+					if self._services[namespace]["client"] is None:
+						print(f" ::: OPENING CLIENT TO {namespace} {self._services[namespace]['port']}")
+						self._services[namespace]["client"] = xoClient(_reqPort=self._services[namespace]["port"])
+						
+					self._services[namespace]["client"].request(namespace+"/"+target, *payload["args"], ** payload["kwargs"])
+
+
+				else:
+					print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+					print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+					print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+					print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+					xoClient().request(namespace+"/"+target, * payload["args"], ** payload["kwargs"])
+
 
 
 				

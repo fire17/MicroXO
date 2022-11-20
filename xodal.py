@@ -245,10 +245,10 @@ class MicroXO(xodal):
 			
 
 	@staticmethod
-	def register(namespace=None, port=None):
+	def register(namespace=None, port=None,*args,**kwargs):
 		if namespace is None:
 			namespace = MicroXO.getNamespace()
-		return MicroXO(funcOrNamespace=namespace, reqPort = port)
+		return MicroXO(funcOrNamespace=namespace, reqPort = port, *args, **kwargs)
 
 	@staticmethod
 	def getNamespace():

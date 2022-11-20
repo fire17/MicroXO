@@ -151,8 +151,13 @@ class MicroXO(xodal):
 					print(" !!! FOUND SERVER NAMESPACE ", namespace, self._services[namespace])
 					print("999999999999999999999")
 					reqPort = self._services[namespace]
+				else:
+					print("XXXXXXXXXXXXXXXXXXXXXXXXXX11111", kwargs["_services"])
 			for service in self._services:
 				print(" ::: SERVICE :::",service)
+		else:
+			print("XXXXXXXXXXXXXXXXXXXXXXXXXX2222", kwargs["_services"])
+
 
 
 		if runServer:

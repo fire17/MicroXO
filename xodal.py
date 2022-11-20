@@ -1,6 +1,8 @@
 # from argparse import Namespace
 # from dataclasses import dataclass, field, asdict
-from xo.expando import Expando
+# from xo.expando import Expando
+from expando import Expando
+
 from zeroless import Client, Server
 # from xo.zmq import xoServer
 import killport
@@ -106,6 +108,7 @@ class MicroXO(xodal):
 	_rootName = "microxo"
 	_reqPort = 1970
 	_pubPort = 19701
+	_services = {}
 
 	def __init__(self, funcOrNamespace=None, reqPort=None, _xoT_=None, *args, **kwargs):
 		print("########00000M", funcOrNamespace, args, kwargs)
@@ -140,6 +143,17 @@ class MicroXO(xodal):
 		# self._id = namespace
 		if _rootName is not None:
 			self._rootName = _rootName
+
+		if "_services" in kwargs:
+			self._services = kwargs["_services"]
+			if namespace is not None and runServer:
+				if namespace in self._services:
+					print(" !!! FOUND SERVER NAMESPACE ", namespace, self._services[namespace])
+					print("999999999999999999999")
+					reqPort = self._services[namespace]
+			for service in self._services:
+				print(" ::: SERVICE :::",service)
+
 
 		if runServer:
 			pubPort = MicroXO._pubPort

@@ -22,7 +22,9 @@ import json
 import traceback
 from ast import arg
 from xo import *
-from xo.expando import Expando
+# from xo.expando import 
+from expando import Expando
+
 from zeroless import Client, Server
 from threading import Thread
 import dill as pk
